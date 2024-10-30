@@ -1,0 +1,16 @@
+[project]
+name = "session-sampling-simulator"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "humanize>=4.11.0",
+    "matplotlib>=3.9.2",
+    "numpy>=2.1.2",
+    "pandas>=2.2.3",
+    "pyyaml>=6.0.2",
+    "seaborn>=0.13.2",
+    "tabulate>=0.9.0",
+    "typer>=0.12.5",
+]
