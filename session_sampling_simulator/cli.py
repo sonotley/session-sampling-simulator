@@ -1,4 +1,6 @@
 import logging
+from pathlib import Path
+from typing_extensions import Annotated
 
 import typer
 from session_sampling_simulator.session_simulator import (
@@ -8,6 +10,7 @@ from session_sampling_simulator.session_simulator import (
     SamplingStrategy,
 )
 from session_sampling_simulator.gui import run_analyzer_gui, run_single_session_gui
+from session_sampling_simulator.example_queries import default_queries
 
 log_format_string = "%(asctime)s | %(levelname)s | %(process)d | %(name)s | %(message)s"
 
@@ -19,8 +22,11 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 app = typer.Typer()
+gui_app = typer.Typer()
+app.add_typer(gui_app, name="gui")
 
-@app.command()
+
+@app.command(help="Simulate a single session and print results to the terminal")
 def simulate(
     query_file: str,
     duration: int = 3600000,
@@ -43,14 +49,47 @@ def simulate(
     print(comparison)
 
 
-@app.command()
-def gui(mode: str, num_queries: int = 5):
-    if mode == "single-session":
-        run_single_session_gui(num_queries)
-    elif mode == "analysis":
-        run_analyzer_gui(num_queries)
+@gui_app.command(help="A GUI mode for simulating a single session")
+def single_session(
+    num_queries: Annotated[
+        int, typer.Option(help="Number of query inputs to render in the GUI")
+    ] = 5,
+):
+    run_single_session_gui(num_queries)
+
+
+@gui_app.command(
+    help="A GUI mode for simulating many sessions and generating an error chart"
+)
+def analyzer(
+    num_queries: Annotated[
+        int, typer.Option(help="Number of query inputs to render in the GUI")
+    ] = 5,
+):
+    run_analyzer_gui(num_queries)
+
+
+@app.command(
+    help="Generates a default queries.yaml file in a new directory in the specified location"
+)
+def setup(
+    path: Annotated[
+        str,
+        typer.Option(
+            help="Path at which to create the sesasim directory, defaults to user's home directory"
+        ),
+    ] = None,
+):
+    if not path:
+        path = Path().home()
     else:
-        return f"Invalid mode {mode}"
+        path = Path(path)
+
+    target_dir = path / "sesasim"
+    target_dir.mkdir()
+
+    with open(target_dir / "queries.yaml", "w") as f:
+        f.write(default_queries)
 
 
 if __name__ == "__main__":

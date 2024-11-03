@@ -138,12 +138,8 @@ def generate_query_field_defs(num_queries: int) -> dict:
 
 def on_analyze_button_click(tk_vars: dict):
     sample_periods = get_sample_period_range(
-        max_sample_period=tk_vars["Global settings"][
-            "Max Sampling Period (ms)"
-        ].get(),
-        min_sample_period=tk_vars["Global settings"][
-            "Min Sampling Period (ms)"
-        ].get(),
+        max_sample_period=tk_vars["Global settings"]["Max Sampling Period (ms)"].get(),
+        min_sample_period=tk_vars["Global settings"]["Min Sampling Period (ms)"].get(),
         num_steps=tk_vars["Global settings"]["Number of Steps"].get(),
     )
 

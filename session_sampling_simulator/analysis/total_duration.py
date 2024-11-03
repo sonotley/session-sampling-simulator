@@ -178,11 +178,12 @@ def show_chart(
         x_axis_var = "Session Duration"
         grouping_var = "Sampling Frequency / Hz"
         discrete_x = True
-        ax.set_xticklabels([precisedelta(x / 1000) for x in unique(results[x_axis_var])])
+        ax.set_xticklabels(
+            [precisedelta(x / 1000) for x in unique(results[x_axis_var])]
+        )
 
     else:
         raise ValueError(f"Unknown chart type {chart_type}")
-
 
     hue_params = {"hue": grouping_var, "palette": chart_palette}
 
@@ -235,9 +236,9 @@ def add_calculated_error_line(
     # Finite population correction where the population is the milliseconds in the sample
     fp_corr1 = np.sqrt(1 - (x_fun / 1000))
     # weird fpc based on proportion of queries sampled, not quite right but better than the above
-    fp_corr2 = np.sqrt(1 - (query.mean_duration * x_fun / 1000))
+    # fp_corr2 = np.sqrt(1 - (query.mean_duration * x_fun / 1000))
     y_fun1 = fp_corr1 * y_fun
-    y_fun2 = fp_corr2 * y_fun
+    # y_fun2 = fp_corr2 * y_fun
 
     plt.plot(x_fun, y_fun1, linestyle=":", color="#fe5186")
     plt.plot(x_fun, -y_fun1, linestyle=":", color="#fe5186")

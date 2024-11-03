@@ -185,7 +185,10 @@ def get_fill_factor(queries: list[Query]) -> float:
 
 
 def generate_session(
-    window_duration: int, queries: list[Query], random_starts: bool = True, id_strategy: IdStrategy = IdStrategy.TIMESTAMP
+    window_duration: int,
+    queries: list[Query],
+    random_starts: bool = True,
+    id_strategy: IdStrategy = IdStrategy.TIMESTAMP,
 ) -> np.ndarray:
     """Generates a session array where each element represents a ms of session runtime
 
@@ -235,7 +238,11 @@ def generate_session(
     query_schedule.sort(key=lambda x: -x[1])
     query_schedule = deque(query_schedule)
 
-    session_dtype = np.uint64 if id_strategy in (IdStrategy.TIMESTAMP, IdStrategy.SEQUENTIAL) else np.uint16
+    session_dtype = (
+        np.uint64
+        if id_strategy in (IdStrategy.TIMESTAMP, IdStrategy.SEQUENTIAL)
+        else np.uint16
+    )
     session = np.zeros(window_duration, dtype=session_dtype)
 
     next_free_start = 0
