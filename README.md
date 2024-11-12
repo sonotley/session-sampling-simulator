@@ -2,7 +2,7 @@
 
 An application that generates synthetic database sessions and allows you to simulate the effects of sampling those sessions to understand the error characteristics.
 
-> **Warning**
+> [!WARNING]
 > I'm still getting this repo set up and tidying the code, so the builds referred to below don't actually exist yet.
 
 ## Installing
@@ -15,6 +15,10 @@ The recommended way to use it is by installing from PyPI using either pipx or uv
 or
 
     uv tool install session_sampling_simulator
+
+> [!WARNING]
+> The standalone Python versions that uv uses don't place nicely with tkinter and matplotlib.
+> I've implemented a workaround for the GUI, but GUI and charts together are a no-no right now.
 
 Equivalently you can download the wheel or sdist from the GitHub releases page and substitute the path to the file for `session_sampling_simulator` in either command.
 
