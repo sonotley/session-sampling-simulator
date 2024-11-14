@@ -1,14 +1,15 @@
 default_queries = """
+---
 queries:
-  - id: 1
-    mean_duration: 40
-    duration_spread: 0
-    target_periodicity: 1000
-    wait_state_ratios:
-      1: 3
-      2: 2
-      3: 1
-    duration_distribution: exponential
+ - id: 1
+   mean_duration: 40
+   duration_spread: 0
+   target_periodicity: 1000
+   wait_state_ratios:
+    1: 3
+    2: 2
+    3: 1
+   duration_distribution: exponential
  - id: 2
    mean_duration: 25
    duration_spread: 0
