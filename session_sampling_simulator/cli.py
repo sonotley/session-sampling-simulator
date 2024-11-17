@@ -177,6 +177,12 @@ def single_session(
     help="A GUI mode for simulating many sessions and generating an error chart"
 )
 def analyzer(
+    # mode: Annotated[
+    #     str,
+    #     typer.Option(
+    #         help="Mode, one of 'frequency-query', 'frequency-waits' or 'duration-frequency'"
+    #     ),
+    # ] = "frequency-query",
     query_file: Annotated[
         str, typer.Option(help="Path to YAML file defining the queries to simulate")
     ] = DEFAULT_GUI_FULL_PATH,
@@ -196,22 +202,10 @@ def analyzer(
 
 
 @app.command(
-    help="Generates a default queries.yaml file in a new directory in the specified location"
+    help="Generates default query files in a new directory in user's home directory"
 )
-def setup(
-    path: Annotated[
-        str,
-        typer.Option(
-            help="Path at which to create the sesasim directory, defaults to user's home directory"
-        ),
-    ] = None,
-):
-    if not path:
-        path = DEFAULT_FILE_LOCATION
-    else:
-        path = Path(path)
-
-    target_dir = path / DEFAULT_DIR_NAME
+def setup():
+    target_dir = DEFAULT_FILE_LOCATION / DEFAULT_DIR_NAME
     target_dir.mkdir()
 
     with open(target_dir / DEFAULT_QUERY_FILE, "w") as f:
