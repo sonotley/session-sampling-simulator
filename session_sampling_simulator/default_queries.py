@@ -1,4 +1,4 @@
-default_queries = """
+queries_yaml = """
 ---
 queries:
  - id: 1

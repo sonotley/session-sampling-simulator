@@ -18,7 +18,8 @@ or
 
 > [!WARNING]
 > The standalone Python versions that uv uses don't place nicely with tkinter and matplotlib.
-> I've implemented a workaround for the GUI, but GUI and charts together are a no-no right now.
+> I've implemented a workaround for the GUI, but GUI and charts together are a no-no right now
+> which means the `gui analyzer` command is broken.
 
 Equivalently you can download the wheel or sdist from the GitHub releases page and substitute the path to the file for `session_sampling_simulator` in either command.
 
@@ -31,4 +32,7 @@ Of course, you can also just create a virtual environment manually, activate it 
 ## Using
 
 The package installs a CLI script `sesasim` which you can invoke to access various functionality. 
+It's recommended to run `sesasim setup` first. 
+This creates a directory in your home directory and populates it with some default query definitions.
+
 You can start the GUI mode with `sesasim gui <mode>`.

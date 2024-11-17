@@ -4,6 +4,7 @@ from os import environ
 from pathlib import Path
 from sys import base_prefix
 from tkinter import ttk
+
 from session_sampling_simulator.session_simulator import (
     Query,
     compare_true_and_resampled,
@@ -49,6 +50,11 @@ def add_labeled_field(
 def make_dict_from_ratios(ratios: str) -> dict[int, int]:
     raw_ratios = [int(x) for x in ratios.split(":")]
     return {w + 1: r for w, r in enumerate(raw_ratios)}
+
+
+def make_ratios_from_dict(d: dict[int:int]) -> str:
+    # note this won't preserve the keys, just their order
+    return ":".join([str(v) for k, v in sorted(d.items(), key=lambda x: x[0])])
 
 
 def extract_queries_from_vars(tk_vars: dict) -> list[Query]:
@@ -123,16 +129,20 @@ def init_input_fields(
     return tk_vars
 
 
-def generate_query_field_defs(num_queries: int) -> dict:
+def generate_query_field_defs(queries: list[Query]) -> dict:
     return {
-        f"Query {x+1}": [
-            ("Mean Duration (ms)", 20, tk.IntVar),
-            ("Duration Spread (ms)", 15, tk.IntVar),
-            ("Av. Periodicity (ms)", 500, tk.IntVar),
-            ("Wait-state Ratios", "3:2:1", tk.StringVar),
-            ("Duration Distribution", "uniform", tk.StringVar),
+        f"Query {q.id}": [
+            ("Mean Duration (ms)", q.mean_duration, tk.IntVar),
+            ("Duration Spread (ms)", q.duration_spread, tk.IntVar),
+            ("Av. Periodicity (ms)", q.target_periodicity, tk.IntVar),
+            (
+                "Wait-state Ratios",
+                make_ratios_from_dict(q.wait_state_ratios),
+                tk.StringVar,
+            ),
+            ("Duration Distribution", q.duration_distribution, tk.StringVar),
         ]
-        for x in range(num_queries)
+        for q in queries
     }
 
 
@@ -157,7 +167,7 @@ def on_analyze_button_click(tk_vars: dict):
     )
 
 
-def run_single_session_gui(num_queries: int) -> None:
+def run_single_session_gui(initial_queries: list[Query]) -> None:
     root = tk.Tk()
     root.title("Sampling Simulator")
 
@@ -171,7 +181,7 @@ def run_single_session_gui(num_queries: int) -> None:
             ("Sampling Strategy", "u", tk.StringVar),
             ("Use Calculated Sample Weights", False, tk.BooleanVar),
         ],
-    } | generate_query_field_defs(num_queries)
+    } | generate_query_field_defs(initial_queries)
 
     tk_vars = init_input_fields(
         widget=root,
@@ -196,7 +206,7 @@ def run_single_session_gui(num_queries: int) -> None:
     root.mainloop()
 
 
-def run_analyzer_gui(num_queries: int) -> None:
+def run_analyzer_gui(initial_queries: list[Query]) -> None:
     root = tk.Tk()
     root.title("Sampling Analyzer")
     root.tk.call("tk", "scaling", 2.0)
@@ -215,7 +225,7 @@ def run_analyzer_gui(num_queries: int) -> None:
             ("Target error (%)", 10, tk.IntVar),
             ("Show calculated error", False, tk.BooleanVar),
         ],
-    } | generate_query_field_defs(num_queries)
+    } | generate_query_field_defs(initial_queries)
 
     tk_vars = init_input_fields(
         widget=root,
@@ -231,8 +241,3 @@ def run_analyzer_gui(num_queries: int) -> None:
     analyze_button.grid(row=input_section_height + 5, column=0, columnspan=10, pady=10)
 
     root.mainloop()
-
-
-if __name__ == "__main__":
-    run_analyzer_gui(num_queries=5)
-    # run_single_session_gui(num_queries=5)

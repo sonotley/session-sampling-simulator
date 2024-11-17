@@ -21,4 +21,5 @@ sesasim = "session_sampling_simulator.__main__:app"
 [tool.uv]
 dev-dependencies = [
     "pre-commit>=4.0.1",
+    "pytest>=8.3.3",
 ]
