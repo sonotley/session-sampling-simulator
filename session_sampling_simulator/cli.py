@@ -169,7 +169,7 @@ def single_session(
     ] = False,
 ):
     save_dir = (
-        DEFAULT_DIR_PATH / ".gui-single-session" if DEFAULT_DIR_PATH.exists() else None
+        DEFAULT_DIR_PATH / "gui-single-session" if DEFAULT_DIR_PATH.exists() else None
     )
 
     if restore:
@@ -207,7 +207,7 @@ def analyzer(
         typer.Option(help="Restore previous inputs, ignores any query file specified."),
     ] = False,
 ):
-    save_dir = DEFAULT_DIR_PATH / ".gui-an" if DEFAULT_DIR_PATH.exists() else None
+    save_dir = DEFAULT_DIR_PATH / "gui-analyzer" if DEFAULT_DIR_PATH.exists() else None
 
     if restore:
         run_analyzer_gui(save_dir=save_dir, restore=restore)
@@ -232,8 +232,8 @@ def analyzer(
 def setup():
     target_dir = DEFAULT_FILE_LOCATION / DEFAULT_DIR_NAME
     target_dir.mkdir()
-    (target_dir / ".gui-single-session").mkdir()
-    (target_dir / ".gui-analyze").mkdir()
+    (target_dir / "gui-single-session").mkdir()
+    (target_dir / "gui-analyzer").mkdir()
 
     with open(target_dir / DEFAULT_QUERY_FILE, "w") as f:
         f.write(queries_yaml)
