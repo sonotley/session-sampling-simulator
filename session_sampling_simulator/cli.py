@@ -33,10 +33,9 @@ DEFAULT_FILE_LOCATION = Path().home()
 DEFAULT_DIR_NAME = "sesasim"
 DEFAULT_QUERY_FILE = "queries.yaml"
 DEFAULT_GUI_QUERY_FILE = ".gui_defaults.yaml"
-DEFAULT_FULL_PATH = DEFAULT_FILE_LOCATION / DEFAULT_DIR_NAME / DEFAULT_QUERY_FILE
-DEFAULT_GUI_FULL_PATH = (
-    DEFAULT_FILE_LOCATION / DEFAULT_DIR_NAME / DEFAULT_GUI_QUERY_FILE
-)
+DEFAULT_DIR_PATH = DEFAULT_FILE_LOCATION / DEFAULT_DIR_NAME
+DEFAULT_FULL_PATH = DEFAULT_DIR_PATH / DEFAULT_QUERY_FILE
+DEFAULT_GUI_FULL_PATH = DEFAULT_DIR_PATH / DEFAULT_GUI_QUERY_FILE
 
 app = typer.Typer()
 gui_app = typer.Typer()
@@ -160,17 +159,31 @@ def analyze(
 def single_session(
     query_file: Annotated[
         str, typer.Option(help="Path to YAML file defining the queries to simulate")
-    ] = DEFAULT_GUI_FULL_PATH,
+    ] = None,
     num_queries: Annotated[
         int | None, typer.Option(help="Number of query inputs to render in the GUI")
     ] = None,
+    restore: Annotated[
+        bool,
+        typer.Option(help="Restore previous inputs, ignores any query file specified."),
+    ] = False,
 ):
-    queries = load_queries_from_file(query_file)
+    save_dir = (
+        DEFAULT_DIR_PATH / ".gui-single-session" if DEFAULT_DIR_PATH.exists() else None
+    )
 
-    if num_queries:
-        queries = pad_or_truncate_query_list(queries, num_queries)
+    if restore:
+        run_single_session_gui(save_dir=save_dir, restore=restore)
+    else:
+        if not query_file:
+            query_file = DEFAULT_GUI_FULL_PATH
 
-    run_single_session_gui(queries)
+        queries = load_queries_from_file(query_file)
+
+        if num_queries:
+            queries = pad_or_truncate_query_list(queries, num_queries)
+
+        run_single_session_gui(queries, save_dir=save_dir, restore=restore)
 
 
 @gui_app.command(
@@ -189,13 +202,25 @@ def analyzer(
     num_queries: Annotated[
         int | None, typer.Option(help="Number of query inputs to render in the GUI")
     ] = None,
+    restore: Annotated[
+        bool,
+        typer.Option(help="Restore previous inputs, ignores any query file specified."),
+    ] = False,
 ):
-    queries = load_queries_from_file(query_file)
+    save_dir = DEFAULT_DIR_PATH / ".gui-an" if DEFAULT_DIR_PATH.exists() else None
 
-    if num_queries:
-        queries = pad_or_truncate_query_list(queries, num_queries)
+    if restore:
+        run_analyzer_gui(save_dir=save_dir, restore=restore)
+    else:
+        if not query_file:
+            query_file = DEFAULT_GUI_FULL_PATH
 
-    run_analyzer_gui(queries)
+        queries = load_queries_from_file(query_file)
+
+        if num_queries:
+            queries = pad_or_truncate_query_list(queries, num_queries)
+
+        run_analyzer_gui(queries, save_dir=save_dir, restore=restore)
 
 
 # todo: add an analyzer mode switch or another command
@@ -207,6 +232,8 @@ def analyzer(
 def setup():
     target_dir = DEFAULT_FILE_LOCATION / DEFAULT_DIR_NAME
     target_dir.mkdir()
+    (target_dir / ".gui-single-session").mkdir()
+    (target_dir / ".gui-analyze").mkdir()
 
     with open(target_dir / DEFAULT_QUERY_FILE, "w") as f:
         f.write(queries_yaml)

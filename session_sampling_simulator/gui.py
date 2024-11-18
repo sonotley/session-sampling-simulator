@@ -1,3 +1,5 @@
+import json
+import pickle
 import platform
 import tkinter as tk
 from os import environ
@@ -72,10 +74,40 @@ def extract_queries_from_vars(tk_vars: dict) -> list[Query]:
     ]
 
 
-def on_calculate_button_click(tk_vars, result_text):
-    # Display the result in the text area
+def dump_gui_inputs(
+    tk_vars: dict, path: Path, queries: list[Query] | None = None
+) -> None:
+    with open(path / "settings.json", "w") as f:
+        # noinspection PyTypeChecker
+        json.dump({k: v.get() for k, v in tk_vars["Global settings"].items()}, f)
 
+    if not queries:
+        queries = extract_queries_from_vars(tk_vars)
+
+    with open(path / "queries.pickle", "wb") as f:
+        # noinspection PyTypeChecker
+        pickle.dump(queries, f)
+
+
+def load_gui_inputs(path: Path) -> tuple[dict, list[Query]]:
+    with open(path / "settings.json", "r") as f:
+        # noinspection PyTypeChecker
+        global_settings = json.load(f)
+
+    with open(path / "queries.pickle", "rb") as f:
+        # noinspection PyTypeChecker
+        queries = pickle.load(f)
+
+    return global_settings, queries
+
+
+def on_calculate_button_click(
+    tk_vars: dict, result_text: tk.Text, save_dir: Path | None = None
+) -> None:
     queries = extract_queries_from_vars(tk_vars)
+
+    if save_dir:
+        dump_gui_inputs(tk_vars, save_dir, queries)
 
     result = compare_true_and_resampled(
         session=generate_session(
@@ -146,7 +178,12 @@ def generate_query_field_defs(queries: list[Query]) -> dict:
     }
 
 
-def on_analyze_button_click(tk_vars: dict):
+def on_analyze_button_click(tk_vars: dict, save_dir: Path | None = None) -> None:
+    queries = extract_queries_from_vars(tk_vars)
+
+    if save_dir:
+        dump_gui_inputs(tk_vars, save_dir, queries)
+
     sample_periods = get_sample_period_range(
         max_sample_period=tk_vars["Global settings"]["Max Sampling Period (ms)"].get(),
         min_sample_period=tk_vars["Global settings"]["Min Sampling Period (ms)"].get(),
@@ -154,7 +191,7 @@ def on_analyze_button_click(tk_vars: dict):
     )
 
     analyze_many_and_chart(
-        queries=extract_queries_from_vars(tk_vars),
+        queries=queries,
         durations=[tk_vars["Global settings"]["Duration (ms)"].get()],
         sampling_strategy=tk_vars["Global settings"]["Sampling Strategy"].get(),
         show_calculated=tk_vars["Global settings"]["Show calculated error"].get(),
@@ -167,20 +204,41 @@ def on_analyze_button_click(tk_vars: dict):
     )
 
 
-def run_single_session_gui(initial_queries: list[Query]) -> None:
-    root = tk.Tk()
-    root.title("Sampling Simulator")
+def run_single_session_gui(
+    initial_queries: list[Query] | None = None,
+    save_dir: Path | None = None,
+    restore: bool = False,
+) -> None:
+    if not initial_queries and not (restore and save_dir):
+        raise RuntimeError(
+            "You must provide either some initial queries or set restore and specify a save path"
+        )
 
     input_section_height = 7
 
+    root = tk.Tk()
+    root.title("Sampling Simulator")
+
+    default_global_settings = [
+        ("Duration (ms)", 3600000, tk.IntVar),
+        ("Sample Period (ms)", 1000, tk.IntVar),
+        ("Randomize Session", True, tk.BooleanVar),
+        ("Sampling Strategy", "u", tk.StringVar),
+        ("Use Calculated Sample Weights", False, tk.BooleanVar),
+    ]
+
+    if restore:
+        restored_gs, restored_queries = load_gui_inputs(save_dir)
+        if not initial_queries:
+            initial_queries = restored_queries
+        global_settings = [
+            (x[0], restored_gs.get(x[0], x[1]), x[2]) for x in default_global_settings
+        ]
+    else:
+        global_settings = default_global_settings
+
     input_template = {
-        "Global settings": [
-            ("Duration (ms)", 3600000, tk.IntVar),
-            ("Sample Period (ms)", 1000, tk.IntVar),
-            ("Randomize Session", True, tk.BooleanVar),
-            ("Sampling Strategy", "u", tk.StringVar),
-            ("Use Calculated Sample Weights", False, tk.BooleanVar),
-        ],
+        "Global settings": global_settings,
     } | generate_query_field_defs(initial_queries)
 
     tk_vars = init_input_fields(
@@ -192,7 +250,7 @@ def run_single_session_gui(initial_queries: list[Query]) -> None:
     calculate_button = ttk.Button(
         root,
         text="Calculate",
-        command=lambda: on_calculate_button_click(tk_vars, result_text),
+        command=lambda: on_calculate_button_click(tk_vars, result_text, save_dir),
     )
     calculate_button.grid(
         row=input_section_height + 5, column=0, columnspan=10, pady=10
@@ -206,25 +264,40 @@ def run_single_session_gui(initial_queries: list[Query]) -> None:
     root.mainloop()
 
 
-def run_analyzer_gui(initial_queries: list[Query]) -> None:
+# todo: consider factoring out GUI into a class to avoid repetition
+def run_analyzer_gui(
+    initial_queries: list[Query] | None, save_dir: Path | None, restore: bool = False
+) -> None:
+    input_section_height = 7
+
     root = tk.Tk()
     root.title("Sampling Analyzer")
     root.tk.call("tk", "scaling", 2.0)
 
-    input_section_height = 7
+    default_global_settings = [
+        ("Duration (ms)", 3600000, tk.IntVar),
+        ("Sampling Strategy", "u", tk.StringVar),
+        ("Use Calculated Sample Weights", False, tk.BooleanVar),
+        ("Max Sampling Period (ms)", 2000, tk.IntVar),
+        ("Min Sampling Period (ms)", 200, tk.IntVar),
+        ("Number of Steps", 10, tk.IntVar),
+        ("Sessions Per Step", 10, tk.IntVar),
+        ("Target error (%)", 10, tk.IntVar),
+        ("Show calculated error", False, tk.BooleanVar),
+    ]
+
+    if restore:
+        restored_gs, restored_queries = load_gui_inputs(save_dir)
+        if not initial_queries:
+            initial_queries = restored_queries
+        global_settings = [
+            (x[0], restored_gs.get(x[0], x[1]), x[2]) for x in default_global_settings
+        ]
+    else:
+        global_settings = default_global_settings
 
     input_template = {
-        "Global settings": [
-            ("Duration (ms)", 3600000, tk.IntVar),
-            ("Sampling Strategy", "u", tk.StringVar),
-            ("Use Calculated Sample Weights", False, tk.BooleanVar),
-            ("Max Sampling Period (ms)", 2000, tk.IntVar),
-            ("Min Sampling Period (ms)", 200, tk.IntVar),
-            ("Number of Steps", 10, tk.IntVar),
-            ("Sessions Per Step", 10, tk.IntVar),
-            ("Target error (%)", 10, tk.IntVar),
-            ("Show calculated error", False, tk.BooleanVar),
-        ],
+        "Global settings": global_settings,
     } | generate_query_field_defs(initial_queries)
 
     tk_vars = init_input_fields(
@@ -236,7 +309,7 @@ def run_analyzer_gui(initial_queries: list[Query]) -> None:
     analyze_button = ttk.Button(
         root,
         text="Analyze",
-        command=lambda: on_analyze_button_click(tk_vars),
+        command=lambda: on_analyze_button_click(tk_vars, save_dir),
     )
     analyze_button.grid(row=input_section_height + 5, column=0, columnspan=10, pady=10)
 
