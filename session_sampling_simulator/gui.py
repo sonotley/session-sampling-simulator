@@ -1,10 +1,7 @@
 import json
 import pickle
-import platform
 import tkinter as tk
-from os import environ
 from pathlib import Path
-from sys import base_prefix
 from tkinter import ttk
 
 from session_sampling_simulator.session_simulator import (
@@ -20,15 +17,6 @@ from session_sampling_simulator.analysis.total_duration import (
 
 
 logger = logging.getLogger(__name__)
-
-if not ("TCL_LIBRARY" in environ and "TK_LIBRARY" in environ):
-    try:
-        tk.Tk()
-    except tk.TclError:
-        tk_dir = "tcl" if platform.system() == "Windows" else "lib"
-        tk_path = Path(base_prefix) / tk_dir
-        environ["TCL_LIBRARY"] = str(next(tk_path.glob("tcl8.*")))
-        environ["TK_LIBRARY"] = str(next(tk_path.glob("tk8.*")))
 
 
 def add_header(root: tk.Tk, text: str, row: int, col: int) -> None:
