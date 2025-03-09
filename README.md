@@ -18,7 +18,7 @@ Equivalently you can download the wheel or sdist from the GitHub releases page a
 ### Warning for uv users!
 
 The standalone Python versions that uv uses don't place nicely with tkinter and matplotlib.
-I've implemented a workaround for the GUI, but GUI and charts together are a no-no right now
+The GUI itself works ok, but GUI and charts together are a no-no right now
 which means the `gui analyzer` command is broken. 
 I'm working on a 'compatibility mode' that will allow this to work.
 
