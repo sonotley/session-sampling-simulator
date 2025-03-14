@@ -39,6 +39,7 @@ class Runner:
         dist = self.query.duration_distribution.lower().strip()
 
         if dist == "uniform":
+            target_sd = np.sqrt((1 / 3) * (self.query.duration_spread**2))
             self._durations = GENERATOR.integers(
                 low=self.query.mean_duration - self.query.duration_spread,
                 high=self.query.mean_duration + self.query.duration_spread,
@@ -46,10 +47,39 @@ class Runner:
                 size=self.buffer_size,
             ).tolist()
         elif dist == "exponential":
+            target_sd = self.query.mean_duration
             self._durations = GENERATOR.exponential(
                 scale=self.query.mean_duration,
                 size=self.buffer_size,
             ).tolist()
+        elif dist == "lognormal":
+            target_sd = self.query.duration_spread
+            raw_durations = GENERATOR.lognormal(
+                mean=np.log(
+                    self.query.mean_duration**2
+                    / np.sqrt(
+                        self.query.mean_duration**2 + self.query.duration_spread**2
+                    )
+                ),
+                sigma=np.sqrt(
+                    np.log(
+                        1
+                        + (self.query.duration_spread**2 / self.query.mean_duration**2)
+                    )
+                ),
+                size=self.buffer_size
+                * 2,  # overfill to allow for removing extreme values
+            )
+            max_duration = self.query.mean_duration + max(
+                self.query.mean_duration * 10, (50 * self.query.duration_spread)
+            )
+            self._durations = raw_durations[raw_durations <= max_duration][
+                : self.buffer_size
+            ].tolist()
+
+        logger.info(
+            f"Generated buffer of {len(self._durations)} durations for Query {self.query.id}, {self.query.duration_distribution}, mean {np.mean(self._durations)} (target: {self.query.mean_duration}), SD {np.std(self._durations)} (target: {target_sd})"
+        )
 
     def execute(self, additional_id: int = 0) -> np.ndarray:
         """

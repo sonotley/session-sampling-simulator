@@ -1,6 +1,6 @@
 [project]
 name = "session-sampling-simulator"
-version = "0.1.1post1"
+version = "0.2.0a1"
 description = "An application/library for simulating the sampling of Postgres session states."
 readme = "README.md"
 requires-python = ">=3.12"
@@ -18,8 +18,8 @@ dependencies = [
 [project.scripts]
 sesasim = "session_sampling_simulator.__main__:app"
 
-[tool.uv]
-dev-dependencies = [
+[dependency-groups]
+dev = [
     "pre-commit>=4.1.0",
     "pytest>=8.3.5",
 ]
