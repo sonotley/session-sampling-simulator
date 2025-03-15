@@ -178,18 +178,21 @@ def on_analyze_button_click(tk_vars: dict, save_dir: Path | None = None) -> None
         num_steps=tk_vars["Global settings"]["Number of Steps"].get(),
     )
 
-    analyze_many_and_chart(
-        queries=queries,
-        durations=[tk_vars["Global settings"]["Duration (ms)"].get()],
-        sampling_strategy=tk_vars["Global settings"]["Sampling Strategy"].get(),
-        show_calculated=tk_vars["Global settings"]["Show calculated error"].get(),
-        target_error=tk_vars["Global settings"]["Target error (%)"].get(),
-        sample_periods=sample_periods,
-        num_sessions=tk_vars["Global settings"]["Sessions Per Step"].get(),
-        use_calculated_sample_weights=tk_vars["Global settings"][
+    # Save these in the hope of finding some way to pass them outside of tk scope and make uv python work :(
+    analyze_params = {
+        "queries": queries,
+        "durations": [tk_vars["Global settings"]["Duration (ms)"].get()],
+        "sampling_strategy": tk_vars["Global settings"]["Sampling Strategy"].get(),
+        "show_calculated": tk_vars["Global settings"]["Show calculated error"].get(),
+        "target_error": tk_vars["Global settings"]["Target error (%)"].get(),
+        "sample_periods": sample_periods,
+        "num_sessions": tk_vars["Global settings"]["Sessions Per Step"].get(),
+        "use_calculated_sample_weights": tk_vars["Global settings"][
             "Use Calculated Sample Weights"
         ].get(),
-    )
+    }
+
+    analyze_many_and_chart(**analyze_params)
 
 
 def run_single_session_gui(

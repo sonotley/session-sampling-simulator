@@ -5,9 +5,8 @@ from pathlib import Path
 
 import numpy as np
 import seaborn as sns
-from pandas import concat, unique
+from pandas import concat, unique, DataFrame
 import matplotlib.pyplot as plt
-from pandas.core.interchange.dataframe_protocol import DataFrame
 from humanize import precisedelta
 
 from session_sampling_simulator.session_simulator import (

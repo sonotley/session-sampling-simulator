@@ -96,4 +96,7 @@ For each query, you can specify the following:
  - Duration Spread: a measure of how much the duration varies, how this is used depends on _Duration Distribution_.
  - Average Periodicity: the average interval between executions of the query in milliseconds. This interval is generated from an exponential distribution function.
  - Wait-state Ratios: a ratio describing how much of the query's execution is spent in each wait state. For example `2:0:1` means that the query spends two thirds of its time in wait 1, none in wait 2 and one third it wait 3.
- - Duration Distribution: can be set to 'uniform' or 'exponential'. If set to 'uniform' the duration of each execution is drawn from a uniform distribution of width 2 x _Duration Spread_ around _Average Periodicity_. If set to 'exponential', it is drawn from an exponential distribution of mean _Average Periodicity_.
+ - Duration Distribution: can be set to 'uniform', 'lognormal' or 'exponential'. 
+   - If set to 'uniform' the duration of each execution is drawn from a uniform distribution of width 2 x _Duration Spread_ around _Average Periodicity_.
+   - If set to 'uniform' the duration of each execution is drawn from a lognormal distribution with mean _Average Periodicity and standard deviation _Duration Spread_.
+   - If set to 'exponential', it is drawn from an exponential distribution of mean _Average Periodicity_.
