@@ -420,9 +420,9 @@ def dataframe_to_text(df: DataFrame) -> str:
     )
 
 
-def find_contiguous_regions(arr: np.ndarray):
+def find_contiguous_regions(arr: np.ndarray) -> list[tuple]:
     # Find the indices where the value changes
-    change_points = np.diff(arr, prepend=arr[0] - 1).nonzero()[0]
+    change_points = np.diff(arr, prepend=arr[0] + 1).nonzero()[0]
 
     # Generate the start and end indices for contiguous regions
     starts = change_points

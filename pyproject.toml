@@ -1,6 +1,6 @@
 [project]
 name = "session-sampling-simulator"
-version = "0.2.0post1"
+version = "0.2.1"
 description = "An application/library for simulating the sampling of Postgres session states."
 readme = "README.md"
 requires-python = ">=3.12"
